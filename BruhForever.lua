@@ -16,7 +16,7 @@ local f = CreateFrame("Frame")
 for channel, events in pairs(CHANNELS) do
     for _, event in ipairs(events) do
         eventToChannel[event] = channel
-        f:RegisterEvent(event)
+        pcall(f.RegisterEvent, f, event) -- older clients lack some chat events (e.g. instance chat)
     end
 end
 f:RegisterEvent("PLAYER_LOGIN")
