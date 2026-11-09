@@ -34,13 +34,28 @@ local function playBruh()
     end
 end
 
+-- True when the user chose to pause in this content. Paused means no replies and no counting.
+local function paused()
+    local db = BruhForeverDB
+    if db.pauseRaid and select(2, IsInInstance()) == "raid" then return true end
+    return db.pauseMythic and C_ChallengeMode and C_ChallengeMode.IsChallengeModeActive
+        and C_ChallengeMode.IsChallengeModeActive()
+end
+
+local function count(channel, key)
+    local s = BruhForeverDB.stats[channel]
+    if not s then s = { heard = 0, sent = 0 }; BruhForeverDB.stats[channel] = s end
+    s[key] = s[key] + 1
+end
+
 local function onChat(event, msg, _, _, _, _, _, _, _, _, _, _, guid)
     local channel = eventToChannel[event]
-    if not BruhForeverDB.channels[channel] then return end
+    if not BruhForeverDB.channels[channel] or paused() then return end
     -- Midnight hides chat text during encounters; we cannot read or reply then.
     if issecretvalue and (issecretvalue(msg) or issecretvalue(guid)) then return end
     if C_ChatInfo and C_ChatInfo.InChatMessagingLockdown and C_ChatInfo.InChatMessagingLockdown() then return end
     if guid == UnitGUID("player") or not isBruh(msg) then return end
+    count(channel, "heard")
     local now = GetTime()
     if BruhForeverDB.sound then
         local gap = BruhForeverDB.soundCooldown or 0 -- seconds; 0 plays every bruh
@@ -54,6 +69,16 @@ local function onChat(event, msg, _, _, _, _, _, _, _, _, _, _, guid)
     lastSent[channel] = now
     local send = C_ChatInfo and C_ChatInfo.SendChatMessage or SendChatMessage
     pcall(send, "bruh", channel)
+    count(channel, "sent")
+end
+
+local function printStats()
+    local heard, sent = 0, 0
+    for channel, s in pairs(BruhForeverDB.stats) do
+        heard, sent = heard + s.heard, sent + s.sent
+        print(PREFIX .. channel .. ": heard " .. s.heard .. ", said " .. s.sent)
+    end
+    print(PREFIX .. "total: heard " .. heard .. " bruhs, said " .. sent .. ". (/bruh reset clears this)")
 end
 
 local function status()
@@ -91,6 +116,14 @@ local function setupOptions()
         options:SetLabelFormatter(MinimalSliderWithSteppersMixin.Label.Right)
         Settings.CreateSlider(category, cd, options, "Minimum seconds between sounds. 0 plays the sound for every bruh, even overlapping.")
     end)
+    for _, p in ipairs({
+        { "pauseRaid", "Pause in raids", "Don't reply or count bruhs while inside a raid instance." },
+        { "pauseMythic", "Pause in Mythic+", "Don't reply or count bruhs during a Mythic+ run (Retail)." },
+    }) do
+        local setting = Settings.RegisterAddOnSetting(category, "BRUHFOREVER_" .. p[1]:upper(), p[1],
+            BruhForeverDB, Settings.VarType.Boolean, p[2], false)
+        Settings.CreateCheckbox(category, setting, p[3])
+    end
     Settings.RegisterAddOnCategory(category)
 end
 
@@ -103,6 +136,10 @@ f:SetScript("OnEvent", function(_, event, ...)
             if BruhForeverDB.channels[channel] == nil then BruhForeverDB.channels[channel] = true end
         end
         if type(BruhForeverDB.soundCooldown) ~= "number" then BruhForeverDB.soundCooldown = 5 end
+        BruhForeverDB.stats = BruhForeverDB.stats or {}
+        for _, key in ipairs({ "pauseRaid", "pauseMythic" }) do
+            if BruhForeverDB[key] == nil then BruhForeverDB[key] = false end
+        end
         if Settings and Settings.RegisterVerticalLayoutCategory then pcall(setupOptions) end
         print(PREFIX .. "loaded. Bruh.")
     else
@@ -112,19 +149,28 @@ end)
 
 SLASH_BRUHFOREVER1 = "/bruh"
 SlashCmdList.BRUHFOREVER = function(input)
-    local name, state = input:upper():match("^(%S+)%s+(%S+)$")
+    local name, state = input:upper():match("^(%S*)%s*(%S*)$")
     name = ALIAS[name] or name
-    if name == "SOUND" and (state == "ON" or state == "OFF") then
-        BruhForeverDB.sound = state == "ON"
+    local on = state == "ON"
+    if name == "STATS" then
+        printStats()
+    elseif name == "RESET" then
+        BruhForeverDB.stats = {}
+        print(PREFIX .. "counter reset")
+    elseif name == "SOUND" and (state == "ON" or state == "OFF") then
+        BruhForeverDB.sound = on
         print(PREFIX .. "sound " .. state:lower())
     elseif name == "SOUNDCOOLDOWN" and tonumber(state) and tonumber(state) >= 0 then
         BruhForeverDB.soundCooldown = tonumber(state)
         print(PREFIX .. "sound cooldown " .. state .. "s")
+    elseif (name == "PAUSERAID" or name == "PAUSEMYTHIC") and (on or state == "OFF") then
+        BruhForeverDB[name == "PAUSERAID" and "pauseRaid" or "pauseMythic"] = on
+        print(PREFIX .. name:lower() .. " " .. state:lower())
     elseif CHANNELS[name] and (state == "ON" or state == "OFF") then
         BruhForeverDB.channels[name] = state == "ON"
         print(PREFIX .. name .. " " .. state:lower())
     else
-        print(PREFIX .. "usage: /bruh <party|raid|instance|guild|sound> <on|off>")
+        print(PREFIX .. "usage: /bruh <party|raid|instance|guild|pauseraid|pausemythic|sound> <on|off>, /bruh stats, /bruh reset")
         print(PREFIX .. "sound: " .. (BruhForeverDB.sound and "on" or "off")
             .. ", sound cooldown: " .. BruhForeverDB.soundCooldown .. "s (/bruh soundcooldown <seconds>, 0 = none)")
         status()
