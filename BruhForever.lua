@@ -45,6 +45,27 @@ local function status()
     end
 end
 
+local OPTION_LABELS = {
+    PARTY = { "Party chat", true },
+    RAID = { "Raid chat", true },
+    GUILD = { "Guild chat", true },
+    INSTANCE_CHAT = { "Instance chat", false },
+}
+local OPTION_ORDER = { "PARTY", "RAID", "GUILD", "INSTANCE_CHAT" }
+
+-- Adds a page to the game's AddOns settings list. Wrapped in pcall at the call site:
+-- older clients use a different Settings API and must not break the slash commands.
+local function setupOptions()
+    local category = Settings.RegisterVerticalLayoutCategory("Bruh Forever")
+    for _, channel in ipairs(OPTION_ORDER) do
+        local label, default = unpack(OPTION_LABELS[channel])
+        local setting = Settings.RegisterAddOnSetting(category, "BRUHFOREVER_" .. channel, channel,
+            BruhForeverDB.channels, Settings.VarType.Boolean, "Reply \"bruh\" in " .. label, default)
+        Settings.CreateCheckbox(category, setting, "Say \"bruh\" back when someone says it in " .. label .. ".")
+    end
+    Settings.RegisterAddOnCategory(category)
+end
+
 f:SetScript("OnEvent", function(_, event, ...)
     if event == "PLAYER_LOGIN" then
         BruhForeverDB = BruhForeverDB or {}
@@ -53,6 +74,7 @@ f:SetScript("OnEvent", function(_, event, ...)
         for _, channel in ipairs({ "PARTY", "RAID", "GUILD" }) do
             if BruhForeverDB.channels[channel] == nil then BruhForeverDB.channels[channel] = true end
         end
+        if Settings and Settings.RegisterVerticalLayoutCategory then pcall(setupOptions) end
     else
         onChat(event, ...)
     end
