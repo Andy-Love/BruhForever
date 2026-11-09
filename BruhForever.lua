@@ -42,9 +42,11 @@ local function onChat(event, msg, _, _, _, _, _, _, _, _, _, _, guid)
     if C_ChatInfo and C_ChatInfo.InChatMessagingLockdown and C_ChatInfo.InChatMessagingLockdown() then return end
     if guid == UnitGUID("player") or not isBruh(msg) then return end
     local now = GetTime()
-    if lastSent[channel] and now - lastSent[channel] < COOLDOWN then return end
+    local cooling = lastSent[channel] and now - lastSent[channel] < COOLDOWN
+    -- The sound cooldown is optional; the reply cooldown is not, or two users would loop forever.
+    if BruhForeverDB.sound and (not cooling or not BruhForeverDB.soundCooldown) then playBruh() end
+    if cooling then return end
     lastSent[channel] = now
-    if BruhForeverDB.sound then playBruh() end
     local send = C_ChatInfo and C_ChatInfo.SendChatMessage or SendChatMessage
     pcall(send, "bruh", channel)
 end
@@ -76,6 +78,9 @@ local function setupOptions()
     local sound = Settings.RegisterAddOnSetting(category, "BRUHFOREVER_SOUND", "sound",
         BruhForeverDB, Settings.VarType.Boolean, "Play a sound on bruh", false)
     Settings.CreateCheckbox(category, sound, "Play a sound each time someone says bruh in an enabled channel.")
+    local cd = Settings.RegisterAddOnSetting(category, "BRUHFOREVER_SOUNDCD", "soundCooldown",
+        BruhForeverDB, Settings.VarType.Boolean, "Limit the sound to once per 5 seconds", true)
+    Settings.CreateCheckbox(category, cd, "Turn off to play the sound for every bruh, even overlapping.")
     Settings.RegisterAddOnCategory(category)
 end
 
@@ -87,6 +92,7 @@ f:SetScript("OnEvent", function(_, event, ...)
         for _, channel in ipairs({ "PARTY", "RAID", "GUILD" }) do
             if BruhForeverDB.channels[channel] == nil then BruhForeverDB.channels[channel] = true end
         end
+        if BruhForeverDB.soundCooldown == nil then BruhForeverDB.soundCooldown = true end
         if Settings and Settings.RegisterVerticalLayoutCategory then pcall(setupOptions) end
         print(PREFIX .. "loaded. Bruh.")
     else
@@ -101,12 +107,16 @@ SlashCmdList.BRUHFOREVER = function(input)
     if name == "SOUND" and (state == "ON" or state == "OFF") then
         BruhForeverDB.sound = state == "ON"
         print(PREFIX .. "sound " .. state:lower())
+    elseif name == "SOUNDCOOLDOWN" and (state == "ON" or state == "OFF") then
+        BruhForeverDB.soundCooldown = state == "ON"
+        print(PREFIX .. "sound cooldown " .. state:lower())
     elseif CHANNELS[name] and (state == "ON" or state == "OFF") then
         BruhForeverDB.channels[name] = state == "ON"
         print(PREFIX .. name .. " " .. state:lower())
     else
         print(PREFIX .. "usage: /bruh <party|raid|instance|guild|sound> <on|off>")
-        print(PREFIX .. "sound: " .. (BruhForeverDB.sound and "on" or "off"))
+        print(PREFIX .. "sound: " .. (BruhForeverDB.sound and "on" or "off")
+            .. ", sound cooldown: " .. (BruhForeverDB.soundCooldown and "on" or "off") .. " (/bruh soundcooldown <on|off>)")
         status()
     end
 end
