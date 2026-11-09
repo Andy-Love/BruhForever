@@ -28,7 +28,9 @@ end
 local SOUND_COUNT = 5 -- sounds/bruh1.ogg .. bruh5.ogg
 
 local function playBruh()
-    local file = "Interface\\AddOns\\BruhForever\\sounds\\bruh" .. math.random(SOUND_COUNT) .. ".ogg"
+    local pick = BruhForeverDB.soundPick -- 1..SOUND_COUNT, or nil for a random one each time
+    if not pick or pick < 1 or pick > SOUND_COUNT then pick = math.random(SOUND_COUNT) end
+    local file = "Interface\\AddOns\\BruhForever\\sounds\\bruh" .. pick .. ".ogg"
     if not PlaySoundFile(file, "Master") and SOUNDKIT then
         PlaySound(SOUNDKIT.TELL_MESSAGE, "Master")
     end
@@ -145,6 +147,21 @@ local function setupOptions()
             BruhForeverDB, Settings.VarType.Boolean, p[2], false)
         Settings.CreateCheckbox(category, setting, p[3])
     end
+    pcall(function()
+        local pick = Settings.RegisterAddOnSetting(category, "BRUHFOREVER_SOUNDPICK", "soundPick",
+            BruhForeverDB, Settings.VarType.Number, "Sound", 0)
+        Settings.CreateDropdown(category, pick, function()
+            local c = Settings.CreateControlTextContainer()
+            c:Add(0, "Random")
+            for i = 1, SOUND_COUNT do c:Add(i, "Bruh " .. i) end
+            return c:GetData()
+        end, "Which bruh to play. Random picks a different one each time.")
+    end)
+    -- Credit line at the bottom of the page.
+    pcall(function()
+        SettingsPanel:GetLayout(category):AddInitializer(
+            CreateSettingsListSectionHeaderInitializer("Bruh voiced by Malexis"))
+    end)
     Settings.RegisterAddOnCategory(category)
 end
 
@@ -156,6 +173,7 @@ f:SetScript("OnEvent", function(_, event, ...)
         for _, channel in ipairs({ "PARTY", "RAID", "GUILD" }) do
             if BruhForeverDB.channels[channel] == nil then BruhForeverDB.channels[channel] = true end
         end
+        if type(BruhForeverDB.soundPick) ~= "number" then BruhForeverDB.soundPick = 0 end -- 0 = random
         if type(BruhForeverDB.soundCooldown) ~= "number" then BruhForeverDB.soundCooldown = 5 end
         BruhForeverDB.stats = BruhForeverDB.stats or {}
         for _, key in ipairs({ "pauseRaid", "pauseMythic" }) do
@@ -181,6 +199,9 @@ SlashCmdList.BRUHFOREVER = function(input)
     elseif name == "SOUND" and (state == "ON" or state == "OFF") then
         BruhForeverDB.sound = on
         print(PREFIX .. "sound " .. state:lower())
+    elseif name == "SOUNDPICK" and (state == "RANDOM" or (tonumber(state) and tonumber(state) >= 1 and tonumber(state) <= SOUND_COUNT)) then
+        BruhForeverDB.soundPick = tonumber(state) or 0
+        print(PREFIX .. "sound " .. state:lower())
     elseif name == "SOUNDCOOLDOWN" and tonumber(state) and tonumber(state) >= 0 then
         BruhForeverDB.soundCooldown = tonumber(state)
         print(PREFIX .. "sound cooldown " .. state .. "s")
@@ -193,7 +214,7 @@ SlashCmdList.BRUHFOREVER = function(input)
     else
         print(PREFIX .. "usage: /bruh <party|raid|instance|guild|pauseraid|pausemythic|sound> <on|off>, /bruh stats, /bruh reset")
         print(PREFIX .. "sound: " .. (BruhForeverDB.sound and "on" or "off")
-            .. ", sound cooldown: " .. BruhForeverDB.soundCooldown .. "s (/bruh soundcooldown <seconds>, 0 = none)")
+            .. ", sound cooldown: " .. BruhForeverDB.soundCooldown .. "s (/bruh soundcooldown <seconds>, 0 = none), /bruh soundpick <random|1-5>")
         status()
     end
 end
