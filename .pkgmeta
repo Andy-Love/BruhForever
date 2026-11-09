@@ -9,4 +9,5 @@ ignore:
   - .gitignore
   - .gitattributes
   - README.md
+  - assets
   - CHANGELOG.md
