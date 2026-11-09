@@ -1,9 +1,5 @@
 package-as: BruhForever
 
-manual-changelog:
-  filename: CHANGELOG.md
-  markup-type: markdown
-
 ignore:
   - .github
   - .gitignore
