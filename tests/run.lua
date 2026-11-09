@@ -134,6 +134,7 @@ end)
 test("a broken Settings API does not break login or slash commands", function()
     local w = load({}, { RegisterVerticalLayoutCategory = function() error("boom") end })
     eq(w.printed[#w.printed]:find("loaded. Bruh.", 1, true) ~= nil, true)
+    eq(w.printed[1]:find("settings: page unavailable", 1, true) ~= nil, true)
     w.say("bruh"); eq(#w.sent, 1)
 end)
 
