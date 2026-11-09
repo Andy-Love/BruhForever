@@ -28,7 +28,7 @@ end
 local SOUND_COUNT = 5 -- sounds/bruh1.ogg .. bruh5.ogg
 
 local function playBruh()
-    local file = "Interface\AddOns\BruhForever\sounds\bruh" .. math.random(SOUND_COUNT) .. ".ogg"
+    local file = "Interface\\AddOns\\BruhForever\\sounds\\bruh" .. math.random(SOUND_COUNT) .. ".ogg"
     if not PlaySoundFile(file, "Master") and SOUNDKIT then
         PlaySound(SOUNDKIT.TELL_MESSAGE, "Master")
     end
