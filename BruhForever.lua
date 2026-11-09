@@ -49,6 +49,10 @@ f:SetScript("OnEvent", function(_, event, ...)
     if event == "PLAYER_LOGIN" then
         BruhForeverDB = BruhForeverDB or {}
         BruhForeverDB.channels = BruhForeverDB.channels or {}
+        -- Fill only unset channels so a user's explicit "off" survives updates.
+        for _, channel in ipairs({ "PARTY", "RAID", "GUILD" }) do
+            if BruhForeverDB.channels[channel] == nil then BruhForeverDB.channels[channel] = true end
+        end
     else
         onChat(event, ...)
     end
