@@ -25,6 +25,15 @@ local function isBruh(msg)
     return msg:lower():find("%f[%a]bruh%f[%A]") ~= nil
 end
 
+local SOUND_FILE = "Interface\\AddOns\\BruhForever\\bruh.ogg"
+
+-- shortcut: until bruh.ogg ships, PlaySoundFile fails and we fall back to the whisper ping.
+local function playBruh()
+    if not PlaySoundFile(SOUND_FILE, "Master") and SOUNDKIT then
+        PlaySound(SOUNDKIT.TELL_MESSAGE, "Master")
+    end
+end
+
 local function onChat(event, msg, _, _, _, _, _, _, _, _, _, _, guid)
     local channel = eventToChannel[event]
     if not BruhForeverDB.channels[channel] then return end
@@ -35,6 +44,7 @@ local function onChat(event, msg, _, _, _, _, _, _, _, _, _, _, guid)
     local now = GetTime()
     if lastSent[channel] and now - lastSent[channel] < COOLDOWN then return end
     lastSent[channel] = now
+    if BruhForeverDB.sound then playBruh() end
     local send = C_ChatInfo and C_ChatInfo.SendChatMessage or SendChatMessage
     pcall(send, "bruh", channel)
 end
@@ -63,6 +73,9 @@ local function setupOptions()
             BruhForeverDB.channels, Settings.VarType.Boolean, "Reply \"bruh\" in " .. label, default)
         Settings.CreateCheckbox(category, setting, "Say \"bruh\" back when someone says it in " .. label .. ".")
     end
+    local sound = Settings.RegisterAddOnSetting(category, "BRUHFOREVER_SOUND", "sound",
+        BruhForeverDB, Settings.VarType.Boolean, "Play a sound on bruh", false)
+    Settings.CreateCheckbox(category, sound, "Play a sound each time someone says bruh in an enabled channel.")
     Settings.RegisterAddOnCategory(category)
 end
 
@@ -85,11 +98,15 @@ SLASH_BRUHFOREVER1 = "/bruh"
 SlashCmdList.BRUHFOREVER = function(input)
     local name, state = input:upper():match("^(%S+)%s+(%S+)$")
     name = ALIAS[name] or name
-    if CHANNELS[name] and (state == "ON" or state == "OFF") then
+    if name == "SOUND" and (state == "ON" or state == "OFF") then
+        BruhForeverDB.sound = state == "ON"
+        print(PREFIX .. "sound " .. state:lower())
+    elseif CHANNELS[name] and (state == "ON" or state == "OFF") then
         BruhForeverDB.channels[name] = state == "ON"
         print(PREFIX .. name .. " " .. state:lower())
     else
-        print(PREFIX .. "usage: /bruh <party|raid|instance|guild> <on|off>")
+        print(PREFIX .. "usage: /bruh <party|raid|instance|guild|sound> <on|off>")
+        print(PREFIX .. "sound: " .. (BruhForeverDB.sound and "on" or "off"))
         status()
     end
 end

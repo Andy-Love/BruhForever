@@ -7,3 +7,4 @@
 - 5 second cooldown per channel, never answers itself, stays quiet while the game locks chat during encounters.
 - Supports Retail, MoP Classic, Cataclysm Classic, Wrath Classic, TBC Classic and Classic Era.
 - Settings page under Options > AddOns with a checkbox per channel.
+- Optional sound on each bruh heard in an enabled channel: `/bruh sound on` or the settings page. Off by default.
