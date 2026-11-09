@@ -75,6 +75,7 @@ f:SetScript("OnEvent", function(_, event, ...)
             if BruhForeverDB.channels[channel] == nil then BruhForeverDB.channels[channel] = true end
         end
         if Settings and Settings.RegisterVerticalLayoutCategory then pcall(setupOptions) end
+        print(PREFIX .. "loaded. Bruh.")
     else
         onChat(event, ...)
     end
