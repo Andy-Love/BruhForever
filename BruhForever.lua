@@ -25,11 +25,11 @@ local function isBruh(msg)
     return msg:lower():find("%f[%a]bruh%f[%A]") ~= nil
 end
 
-local SOUND_FILE = "Interface\\AddOns\\BruhForever\\bruh.ogg"
+local SOUND_COUNT = 5 -- sounds/bruh1.ogg .. bruh5.ogg
 
--- shortcut: until bruh.ogg ships, PlaySoundFile fails and we fall back to the whisper ping.
 local function playBruh()
-    if not PlaySoundFile(SOUND_FILE, "Master") and SOUNDKIT then
+    local file = "Interface\AddOns\BruhForever\sounds\bruh" .. math.random(SOUND_COUNT) .. ".ogg"
+    if not PlaySoundFile(file, "Master") and SOUNDKIT then
         PlaySound(SOUNDKIT.TELL_MESSAGE, "Master")
     end
 end
