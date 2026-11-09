@@ -8,4 +8,4 @@
 - Supports Retail, MoP Classic, Cataclysm Classic, Wrath Classic, TBC Classic and Classic Era.
 - Settings page under Options > AddOns with a checkbox per channel.
 - Optional sound on each bruh heard in an enabled channel: `/bruh sound on` or the settings page. Off by default.
-- Option to turn off the sound cooldown: `/bruh soundcooldown off` or the settings page.
+- Sound cooldown is adjustable (0-30 seconds, default 5; 0 plays every bruh): `/bruh soundcooldown <seconds>` or the settings page slider.
