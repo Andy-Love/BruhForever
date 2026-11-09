@@ -17,3 +17,5 @@ Fork, branch, open a pull request against `main`. All changes go through a PR.
 ## License
 
 MIT, see [LICENSE](LICENSE).
+
+Bruh sounds voiced by Malexis.
