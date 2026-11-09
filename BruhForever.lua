@@ -42,9 +42,16 @@ local function paused()
         and C_ChallengeMode.IsChallengeModeActive()
 end
 
-local function count(channel, key)
+local chain = {} -- current run of consecutive bruh messages per channel, any speaker, including ours
+
+local function statsFor(channel)
     local s = BruhForeverDB.stats[channel]
-    if not s then s = { heard = 0, sent = 0 }; BruhForeverDB.stats[channel] = s end
+    if not s then s = { heard = 0, sent = 0, chain = 0 }; BruhForeverDB.stats[channel] = s end
+    return s
+end
+
+local function count(channel, key)
+    local s = statsFor(channel)
     s[key] = s[key] + 1
 end
 
@@ -52,9 +59,21 @@ local function onChat(event, msg, _, _, _, _, _, _, _, _, _, _, guid)
     local channel = eventToChannel[event]
     if not BruhForeverDB.channels[channel] or paused() then return end
     -- Midnight hides chat text during encounters; we cannot read or reply then.
-    if issecretvalue and (issecretvalue(msg) or issecretvalue(guid)) then return end
-    if C_ChatInfo and C_ChatInfo.InChatMessagingLockdown and C_ChatInfo.InChatMessagingLockdown() then return end
-    if guid == UnitGUID("player") or not isBruh(msg) then return end
+    -- An unreadable message ends the chain: we can't tell whether it was a bruh.
+    if issecretvalue and (issecretvalue(msg) or issecretvalue(guid)) then chain[channel] = 0; return end
+    if C_ChatInfo and C_ChatInfo.InChatMessagingLockdown and C_ChatInfo.InChatMessagingLockdown() then
+        chain[channel] = 0
+        return
+    end
+    local bruh = isBruh(msg)
+    if bruh then
+        chain[channel] = (chain[channel] or 0) + 1
+        local s = statsFor(channel)
+        if chain[channel] > (s.chain or 0) then s.chain = chain[channel] end
+    else
+        chain[channel] = 0
+    end
+    if guid == UnitGUID("player") or not bruh then return end
     count(channel, "heard")
     local now = GetTime()
     if BruhForeverDB.sound then
@@ -73,12 +92,14 @@ local function onChat(event, msg, _, _, _, _, _, _, _, _, _, _, guid)
 end
 
 local function printStats()
-    local heard, sent = 0, 0
+    local heard, sent, best = 0, 0, 0
     for channel, s in pairs(BruhForeverDB.stats) do
-        heard, sent = heard + s.heard, sent + s.sent
-        print(PREFIX .. channel .. ": heard " .. s.heard .. ", said " .. s.sent)
+        local c = s.chain or 0
+        heard, sent, best = heard + s.heard, sent + s.sent, math.max(best, c)
+        print(PREFIX .. channel .. ": heard " .. s.heard .. ", said " .. s.sent .. ", longest chain " .. c)
     end
-    print(PREFIX .. "total: heard " .. heard .. " bruhs, said " .. sent .. ". (/bruh reset clears this)")
+    print(PREFIX .. "total: heard " .. heard .. " bruhs, said " .. sent .. ", longest chain " .. best
+        .. ". (/bruh reset clears this)")
 end
 
 local function status()
