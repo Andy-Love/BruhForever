@@ -10,4 +10,5 @@ ignore:
   - .gitattributes
   - README.md
   - assets
+  - tests
   - CHANGELOG.md

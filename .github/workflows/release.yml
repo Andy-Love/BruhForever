@@ -20,6 +20,10 @@ jobs:
           fetch-depth: 0
           persist-credentials: false
 
+      - run: sudo apt-get install -y lua5.1
+      - run: luac5.1 -p BruhForever.lua
+      - run: lua5.1 tests/run.lua
+
       - uses: BigWigsMods/packager@e50a250f8705041e40f2fa1ddcb280a686d65aa0 # v2.6.1
         env:
           CF_API_KEY: ${{ secrets.CF_API_KEY }}
