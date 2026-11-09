@@ -4,7 +4,7 @@
 ## Author: Andy Love
 ## Version: @project-version@
 ## SavedVariables: BruhForeverDB
-## X-Curse-Project-ID: TODO
+## X-Curse-Project-ID: 1794727
 ## X-WoWI-ID: TODO
 ## X-Wago-ID: TODO
 
