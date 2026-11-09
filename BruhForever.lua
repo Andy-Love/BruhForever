@@ -120,6 +120,12 @@ local OPTION_ORDER = { "PARTY", "RAID", "GUILD", "INSTANCE_CHAT" }
 
 -- Adds a page to the game's AddOns settings list. Wrapped in pcall at the call site:
 -- older clients use a different Settings API and must not break the slash commands.
+-- Runs fn; a failure prints which settings control is missing instead of vanishing silently.
+local function try(label, fn)
+    local ok, err = pcall(fn)
+    if not ok then print(PREFIX .. "settings: " .. label .. " unavailable: " .. tostring(err)) end
+end
+
 local function setupOptions()
     local category = Settings.RegisterVerticalLayoutCategory("Bruh Forever")
     for _, channel in ipairs(OPTION_ORDER) do
@@ -132,7 +138,7 @@ local function setupOptions()
         BruhForeverDB, Settings.VarType.Boolean, "Play a sound on bruh", false)
     Settings.CreateCheckbox(category, sound, "Play a sound each time someone says bruh in an enabled channel.")
     -- Own pcall: if the slider API differs, the checkboxes above must still be registered.
-    pcall(function()
+    try("sound cooldown slider", function()
         local cd = Settings.RegisterAddOnSetting(category, "BRUHFOREVER_SOUNDCD", "soundCooldown",
             BruhForeverDB, Settings.VarType.Number, "Sound cooldown (seconds)", 5)
         local options = Settings.CreateSliderOptions(0, 30, 1)
@@ -147,7 +153,7 @@ local function setupOptions()
             BruhForeverDB, Settings.VarType.Boolean, p[2], false)
         Settings.CreateCheckbox(category, setting, p[3])
     end
-    pcall(function()
+    try("sound dropdown", function()
         local pick = Settings.RegisterAddOnSetting(category, "BRUHFOREVER_SOUNDPICK", "soundPick",
             BruhForeverDB, Settings.VarType.Number, "Sound", 0)
         Settings.CreateDropdown(category, pick, function()
@@ -158,7 +164,7 @@ local function setupOptions()
         end, "Which bruh to play. Random picks a different one each time.")
     end)
     -- Credit line at the bottom of the page.
-    pcall(function()
+    try("credit line", function()
         SettingsPanel:GetLayout(category):AddInitializer(
             CreateSettingsListSectionHeaderInitializer("Bruh voiced by Malexis"))
     end)
@@ -179,7 +185,7 @@ f:SetScript("OnEvent", function(_, event, ...)
         for _, key in ipairs({ "pauseRaid", "pauseMythic" }) do
             if BruhForeverDB[key] == nil then BruhForeverDB[key] = false end
         end
-        if Settings and Settings.RegisterVerticalLayoutCategory then pcall(setupOptions) end
+        if Settings and Settings.RegisterVerticalLayoutCategory then try("page", setupOptions) end
         print(PREFIX .. "loaded. Bruh.")
     else
         onChat(event, ...)
