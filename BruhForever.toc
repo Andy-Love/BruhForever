@@ -1,0 +1,11 @@
+## Interface: 120000, 120001, 120005, 120007, 120100, 120105
+## Title: Bruh Forever
+## Notes: Bruh. Forever.
+## Author: Andy Love
+## Version: @project-version@
+## SavedVariables: BruhForeverDB
+## X-Curse-Project-ID: TODO
+## X-WoWI-ID: TODO
+## X-Wago-ID: TODO
+
+BruhForever.lua

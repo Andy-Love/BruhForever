@@ -1,0 +1,4 @@
+.release/
+*.zip
+.vscode/
+.idea/
