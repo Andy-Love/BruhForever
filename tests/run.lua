@@ -107,6 +107,30 @@ test("does not reply to answers to a bruh we started, but replies once the chain
     w.say("hello"); w.say("bruh"); eq(#w.sent, 1)
 end)
 
+test("!bruhmode forces sound with no cooldown for 60s, then reverts", function()
+    local w = load({})
+    w.say("!bruhmode"); eq(#w.sent, 0)
+    w.say("bruh"); w.say("bruh"); eq(#w.sounds, 2)
+    w.clock = 159; w.say("bruh"); eq(#w.sounds, 3)
+    w.clock = 161; w.say("bruh"); eq(#w.sounds, 3)
+    eq(BruhForeverDB.sound, nil); eq(BruhForeverDB.soundCooldown, 5)
+end)
+
+test("!bruhmode: repeat within 3s ignored, later repeat restarts the timer", function()
+    local w = load({})
+    w.say("!bruhmode"); w.clock = 102; w.say("!bruhmode")
+    w.clock = 158; w.say("!bruhmode") -- extends from 158
+    w.clock = 200; w.say("bruh"); eq(#w.sounds, 1)
+    w.clock = 219; w.say("bruh"); eq(#w.sounds, 1)
+end)
+
+test("!bruhmode works from ourselves and is ignored when not allowed", function()
+    local w = load({})
+    w.say("!bruhmode", "me"); w.say("bruh"); eq(#w.sounds, 1)
+    local v = load({})
+    v.slash("bruhmode off"); v.say("!bruhmode"); v.say("bruh"); eq(#v.sounds, 0)
+end)
+
 test("secret values end the chain and are not read", function()
     local w = load({})
     _G.issecretvalue = function(v) return v == "secret" end
