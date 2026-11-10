@@ -12,6 +12,8 @@ local CHANNELS = {
 local ALIAS = { INSTANCE = "INSTANCE_CHAT" }
 
 local eventToChannel, lastSent, lastSound = {}, {}, {}
+local BRUH_MODE_SECONDS, BRUH_MODE_GAP = 60, 3 -- length of Bruh Mode; ignore repeat triggers within the gap
+local bruhModeUntil, lastTrigger -- session only: never saved, so saved settings are never touched
 local f = CreateFrame("Frame")
 for channel, events in pairs(CHANNELS) do
     for _, event in ipairs(events) do
@@ -68,6 +70,15 @@ local function onChat(event, msg, _, _, _, _, _, _, _, _, _, _, guid)
         chain[channel] = 0
         return
     end
+    -- !bruhmode from anyone (including us) forces sound on with no cooldown for a minute.
+    if BruhForeverDB.allowBruhMode and msg:lower():find("^%s*!bruhmode%s*$") then
+        local t = GetTime()
+        if not lastTrigger or t - lastTrigger >= BRUH_MODE_GAP then
+            lastTrigger = t
+            bruhModeUntil = t + BRUH_MODE_SECONDS
+            print(PREFIX .. "Bruh Mode for " .. BRUH_MODE_SECONDS .. " seconds")
+        end
+    end
     local bruh = isBruh(msg)
     if bruh then
         chain[channel] = (chain[channel] or 0) + 1
@@ -80,8 +91,9 @@ local function onChat(event, msg, _, _, _, _, _, _, _, _, _, _, guid)
     if guid == UnitGUID("player") or not bruh then return end
     count(channel, "heard")
     local now = GetTime()
-    if BruhForeverDB.sound then
-        local gap = BruhForeverDB.soundCooldown or 0 -- seconds; 0 plays every bruh
+    local bruhMode = bruhModeUntil and now < bruhModeUntil
+    if BruhForeverDB.sound or bruhMode then
+        local gap = bruhMode and 0 or BruhForeverDB.soundCooldown or 0 -- seconds; 0 plays every bruh
         if gap == 0 or not lastSound[channel] or now - lastSound[channel] >= gap then
             lastSound[channel] = now
             playBruh()
@@ -141,6 +153,9 @@ local function setupOptions()
     local sound = Settings.RegisterAddOnSetting(category, "BRUHFOREVER_SOUND", "sound",
         BruhForeverDB, Settings.VarType.Boolean, "Play a sound on bruh", false)
     Settings.CreateCheckbox(category, sound, "Play a sound each time someone says bruh in an enabled channel.")
+    local mode = Settings.RegisterAddOnSetting(category, "BRUHFOREVER_ALLOWBRUHMODE", "allowBruhMode",
+        BruhForeverDB, Settings.VarType.Boolean, "Allow Bruh Mode", true)
+    Settings.CreateCheckbox(category, mode, "When anyone in chat says !bruhmode, play sound on every bruh for 60 seconds, even if sound is off.")
     -- Own pcall: if the slider API differs, the checkboxes above must still be registered.
     try("sound cooldown slider", function()
         local cd = Settings.RegisterAddOnSetting(category, "BRUHFOREVER_SOUNDCD", "soundCooldown",
@@ -183,6 +198,7 @@ f:SetScript("OnEvent", function(_, event, ...)
         for _, channel in ipairs({ "PARTY", "RAID", "GUILD" }) do
             if BruhForeverDB.channels[channel] == nil then BruhForeverDB.channels[channel] = true end
         end
+        if BruhForeverDB.allowBruhMode == nil then BruhForeverDB.allowBruhMode = true end
         if type(BruhForeverDB.soundPick) ~= "number" then BruhForeverDB.soundPick = 0 end -- 0 = random
         if type(BruhForeverDB.soundCooldown) ~= "number" then BruhForeverDB.soundCooldown = 5 end
         BruhForeverDB.stats = BruhForeverDB.stats or {}
@@ -209,6 +225,9 @@ SlashCmdList.BRUHFOREVER = function(input)
     elseif name == "SOUND" and (state == "ON" or state == "OFF") then
         BruhForeverDB.sound = on
         print(PREFIX .. "sound " .. state:lower())
+    elseif name == "BRUHMODE" and (on or state == "OFF") then
+        BruhForeverDB.allowBruhMode = on
+        print(PREFIX .. "bruhmode " .. state:lower())
     elseif name == "SOUNDPICK" and (state == "RANDOM" or (tonumber(state) and tonumber(state) >= 1 and tonumber(state) <= SOUND_COUNT)) then
         BruhForeverDB.soundPick = tonumber(state) or 0
         print(PREFIX .. "sound " .. state:lower())
@@ -222,7 +241,7 @@ SlashCmdList.BRUHFOREVER = function(input)
         BruhForeverDB.channels[name] = state == "ON"
         print(PREFIX .. name .. " " .. state:lower())
     else
-        print(PREFIX .. "usage: /bruh <party|raid|instance|guild|pauseraid|pausemythic|sound> <on|off>, /bruh stats, /bruh reset")
+        print(PREFIX .. "usage: /bruh <party|raid|instance|guild|pauseraid|pausemythic|sound|bruhmode> <on|off>, /bruh stats, /bruh reset")
         print(PREFIX .. "sound: " .. (BruhForeverDB.sound and "on" or "off")
             .. ", sound cooldown: " .. BruhForeverDB.soundCooldown .. "s (/bruh soundcooldown <seconds>, 0 = none), /bruh soundpick <random|1-5>")
         status()
