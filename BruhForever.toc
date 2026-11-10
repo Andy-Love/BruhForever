@@ -6,7 +6,7 @@
 ## SavedVariables: BruhForeverDB
 ## IconTexture: Interface\AddOns\BruhForever\icon
 ## X-Curse-Project-ID: 1794727
-## X-WoWI-ID: TODO
+# Add "## X-WoWI-ID: <number>" here once WoWInterface approves the project; until then the packager skips it.
 ## X-Wago-ID: j6jAZONR
 
 BruhForever.lua
