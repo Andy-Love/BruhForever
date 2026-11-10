@@ -44,6 +44,7 @@ local function paused()
         and C_ChallengeMode.IsChallengeModeActive()
 end
 
+local chainMine = {} -- true while the current chain in a channel was started by us
 local chain = {} -- current run of consecutive bruh messages per channel, any speaker, including ours
 
 local function statsFor(channel)
@@ -70,6 +71,7 @@ local function onChat(event, msg, _, _, _, _, _, _, _, _, _, _, guid)
     local bruh = isBruh(msg)
     if bruh then
         chain[channel] = (chain[channel] or 0) + 1
+        if chain[channel] == 1 then chainMine[channel] = guid == UnitGUID("player") end
         local s = statsFor(channel)
         if chain[channel] > (s.chain or 0) then s.chain = chain[channel] end
     else
@@ -85,6 +87,8 @@ local function onChat(event, msg, _, _, _, _, _, _, _, _, _, _, guid)
             playBruh()
         end
     end
+    -- Someone answering our own bruh does not get a reply; we started it.
+    if chainMine[channel] then return end
     -- The reply cooldown is fixed, or two users would reply to each other forever.
     if lastSent[channel] and now - lastSent[channel] < COOLDOWN then return end
     lastSent[channel] = now

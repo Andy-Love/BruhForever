@@ -101,6 +101,12 @@ test("longest chain counts consecutive bruhs from anyone, resets on other text",
     w.say("bruh"); w.say("bruh"); eq(BruhForeverDB.stats.PARTY.chain, 4)
 end)
 
+test("does not reply to answers to a bruh we started, but replies once the chain ends", function()
+    local w = load({})
+    w.say("bruh", "me"); w.say("bruh"); w.clock = 200; w.say("bruh"); eq(#w.sent, 0)
+    w.say("hello"); w.say("bruh"); eq(#w.sent, 1)
+end)
+
 test("secret values end the chain and are not read", function()
     local w = load({})
     _G.issecretvalue = function(v) return v == "secret" end
