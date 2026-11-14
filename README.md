@@ -50,6 +50,12 @@ Retail, MoP Classic, Cataclysm Classic, Wrath Classic, TBC Classic, Classic Era 
 
 Bruh voiced by **Malexis**. Addon by Andy Love. MIT licensed.
 
+## Screenshots
+
+![Settings page](assets/screenshots/settings.png)
+
+![A bruh reply in guild chat](assets/screenshots/chat-reply.png)
+
 ## Install
 
 Download from [CurseForge](https://www.curseforge.com/wow/addons/bruh-forever), [WoWInterface](https://www.wowinterface.com/downloads/info27302-BruhForever.html) or [Wago](https://addons.wago.io/addons/j6jAZONR), or grab the zip from the [latest GitHub release](../../releases/latest).

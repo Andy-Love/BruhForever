@@ -32,6 +32,8 @@ open("docs/out/wowinterface.bbcode", "w", encoding="utf-8").write(f"{tagline}\n\
 open("docs/out/wago.md", "w", encoding="utf-8").write(f"{tagline}\n\n{body}\n")
 open("README.md", "w", encoding="utf-8").write(
     f"# {title}\n\n![Bruh Forever](assets/banner.png)\n\n{tagline}\n\n{body}\n\n"
+    "## Screenshots\n\n![Settings page](assets/screenshots/settings.png)\n\n"
+    "![A bruh reply in guild chat](assets/screenshots/chat-reply.png)\n\n"
     "## Install\n\nDownload from [CurseForge](https://www.curseforge.com/wow/addons/bruh-forever), "
     "[WoWInterface](https://www.wowinterface.com/downloads/info27302-BruhForever.html) or "
     "[Wago](https://addons.wago.io/addons/j6jAZONR), or grab the zip from the [latest GitHub release](../../releases/latest).\n\n"
