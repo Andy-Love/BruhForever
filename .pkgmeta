@@ -7,4 +7,5 @@ ignore:
   - README.md
   - assets
   - tests
+  - docs
   - CHANGELOG.md
