@@ -8,4 +8,5 @@ ignore:
   - assets
   - tests
   - docs
+  - scripts
   - CHANGELOG.md

@@ -24,9 +24,24 @@ jobs:
       - run: luac5.1 -p BruhForever.lua
       - run: lua5.1 tests/run.lua
 
-      - uses: BigWigsMods/packager@e50a250f8705041e40f2fa1ddcb280a686d65aa0 # v2.6.1
+      - id: packager
+        uses: BigWigsMods/packager@e50a250f8705041e40f2fa1ddcb280a686d65aa0 # v2.6.1
         env:
           CF_API_KEY: ${{ secrets.CF_API_KEY }}
           WOWI_API_TOKEN: ${{ secrets.WOWI_API_TOKEN }}
           WAGO_API_TOKEN: ${{ secrets.WAGO_API_TOKEN }}
           GITHUB_OAUTH: ${{ secrets.GITHUB_TOKEN }}
+
+      # Records download counts on the stats branch. Never fails the release.
+      - name: Record download counts
+        if: always() && steps.packager.conclusion != 'skipped'
+        continue-on-error: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          git clone --depth 1 --branch stats "https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" stats-data
+          python3 scripts/stats.py stats-data/downloads.csv "${GITHUB_REF_NAME}"
+          cd stats-data
+          git add downloads.csv
+          git -c user.name=github-actions -c user.email=github-actions@users.noreply.github.com commit -m "Download counts at ${GITHUB_REF_NAME}"
+          git push
