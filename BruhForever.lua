@@ -144,37 +144,37 @@ end
 
 local function setupOptions()
     local category = Settings.RegisterVerticalLayoutCategory("Bruh Forever")
+    local function header(text)
+        try("section header", function()
+            SettingsPanel:GetLayout(category):AddInitializer(CreateSettingsListSectionHeaderInitializer(text))
+        end)
+    end
+    local function checkbox(key, tbl, field, label, default, tip)
+        local setting = Settings.RegisterAddOnSetting(category, "BRUHFOREVER_" .. key, field, tbl,
+            Settings.VarType.Boolean, label, default)
+        Settings.CreateCheckbox(category, setting, tip)
+    end
+
+    header("Reply \"bruh\" in")
     for _, channel in ipairs(OPTION_ORDER) do
         local label, default = unpack(OPTION_LABELS[channel])
-        local setting = Settings.RegisterAddOnSetting(category, "BRUHFOREVER_" .. channel, channel,
-            BruhForeverDB.channels, Settings.VarType.Boolean, "Reply \"bruh\" in " .. label, default)
-        Settings.CreateCheckbox(category, setting, "Say \"bruh\" back when someone says it in " .. label .. ".")
+        checkbox(channel, BruhForeverDB.channels, channel, label, default,
+            "Say \"bruh\" back when someone says it in " .. label .. ".")
     end
-    local sound = Settings.RegisterAddOnSetting(category, "BRUHFOREVER_SOUND", "sound",
-        BruhForeverDB, Settings.VarType.Boolean, "Play a sound on bruh", false)
-    Settings.CreateCheckbox(category, sound, "Play a sound each time someone says bruh in an enabled channel.")
-    local mode = Settings.RegisterAddOnSetting(category, "BRUHFOREVER_ALLOWBRUHMODE", "allowBruhMode",
-        BruhForeverDB, Settings.VarType.Boolean, "Allow Bruh Mode", true)
-    Settings.CreateCheckbox(category, mode, "When anyone in chat says !bruhmode, play sound on every bruh for 60 seconds, even if sound is off.")
-    -- Own pcall: if the slider API differs, the checkboxes above must still be registered.
-    try("sound cooldown slider", function()
-        local cd = Settings.RegisterAddOnSetting(category, "BRUHFOREVER_SOUNDCD", "soundCooldown",
-            BruhForeverDB, Settings.VarType.Number, "Sound cooldown (seconds)", 5)
-        local options = Settings.CreateSliderOptions(0, 30, 1)
-        options:SetLabelFormatter(MinimalSliderWithSteppersMixin.Label.Right)
-        Settings.CreateSlider(category, cd, options, "Minimum seconds between sounds. 0 plays the sound for every bruh, even overlapping.")
-    end)
-    for _, p in ipairs({
-        { "pauseRaid", "Pause in raids", "Don't reply or count bruhs while inside a raid instance." },
-        { "pauseMythic", "Pause in Mythic+", "Don't reply or count bruhs during a Mythic+ run (Retail)." },
-    }) do
-        local setting = Settings.RegisterAddOnSetting(category, "BRUHFOREVER_" .. p[1]:upper(), p[1],
-            BruhForeverDB, Settings.VarType.Boolean, p[2], false)
-        Settings.CreateCheckbox(category, setting, p[3])
-    end
+
+    header("Pause in")
+    checkbox("PAUSERAID", BruhForeverDB, "pauseRaid", "Raids", false,
+        "Don't reply or count bruhs while inside a raid instance.")
+    checkbox("PAUSEMYTHIC", BruhForeverDB, "pauseMythic", "Mythic+", false,
+        "Don't reply or count bruhs during a Mythic+ run (Retail).")
+
+    header("Sound")
+    checkbox("SOUND", BruhForeverDB, "sound", "Play a sound on bruh", false,
+        "Play a sound each time someone says bruh in an enabled channel.")
+    -- Own try: if an API differs on this client, the controls around it must still be registered.
     try("sound dropdown", function()
         local pick = Settings.RegisterAddOnSetting(category, "BRUHFOREVER_SOUNDPICK", "soundPick",
-            BruhForeverDB, Settings.VarType.Number, "Sound", 0)
+            BruhForeverDB, Settings.VarType.Number, "Which sound", 0)
         Settings.CreateDropdown(category, pick, function()
             local c = Settings.CreateControlTextContainer()
             c:Add(0, "Random")
@@ -182,11 +182,19 @@ local function setupOptions()
             return c:GetData()
         end, "Which bruh to play. Random picks a different one each time.")
     end)
-    -- Credit line at the bottom of the page.
-    try("credit line", function()
-        SettingsPanel:GetLayout(category):AddInitializer(
-            CreateSettingsListSectionHeaderInitializer("Bruh voiced by Malexis"))
+    try("sound cooldown slider", function()
+        local cd = Settings.RegisterAddOnSetting(category, "BRUHFOREVER_SOUNDCD", "soundCooldown",
+            BruhForeverDB, Settings.VarType.Number, "Sound cooldown (seconds)", 5)
+        local options = Settings.CreateSliderOptions(0, 30, 1)
+        options:SetLabelFormatter(MinimalSliderWithSteppersMixin.Label.Right)
+        Settings.CreateSlider(category, cd, options, "Minimum seconds between sounds. 0 plays the sound for every bruh, even overlapping.")
     end)
+
+    header("Bruh Mode")
+    checkbox("ALLOWBRUHMODE", BruhForeverDB, "allowBruhMode", "Allow Bruh Mode", true,
+        "When anyone in chat says !bruhmode, play sound on every bruh for 60 seconds, even if sound is off.")
+
+    header("Bruh voiced by Malexis")
     Settings.RegisterAddOnCategory(category)
 end
 
