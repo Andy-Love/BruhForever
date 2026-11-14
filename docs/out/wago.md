@@ -44,4 +44,4 @@ Retail, MoP Classic, Cataclysm Classic, Wrath Classic, TBC Classic, Classic Era 
 
 ## Credits
 
-Bruh voiced by **Malexis**. Addon by Andy Love. MIT licensed.
+Bruh voiced by **Malexis**. Addon by Jambulance. MIT licensed.
