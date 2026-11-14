@@ -194,7 +194,9 @@ local function setupOptions()
     checkbox("ALLOWBRUHMODE", BruhForeverDB, "allowBruhMode", "Allow Bruh Mode", true,
         "When anyone in chat says !bruhmode, play sound on every bruh for 60 seconds, even if sound is off.")
 
-    header("Bruh voiced by Malexis")
+    header("Credits")
+    header("Created by Jambulance")
+    header("Voiced by Malexis")
     Settings.RegisterAddOnCategory(category)
 end
 

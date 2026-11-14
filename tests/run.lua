@@ -161,7 +161,7 @@ test("soundpick picks a file, random stays within 1-5, bad input rejected", func
     for i = 2, #w.sounds do assert(w.sounds[i]:find("bruh[1-5]%.ogg"), w.sounds[i]) end
 end)
 
-test("settings page groups controls: reply, pause, sound, Bruh Mode, credit", function()
+test("settings page groups controls: reply, pause, sound, Bruh Mode, credits", function()
     local log = {}
     local function noop() end
     _G.SettingsPanel = { GetLayout = function() return { AddInitializer = function(_, h) log[#log + 1] = "# " .. h end } end }
@@ -176,7 +176,7 @@ test("settings page groups controls: reply, pause, sound, Bruh Mode, credit", fu
         CreateControlTextContainer = noop, RegisterAddOnCategory = noop,
     })
     eq(table.concat(log, "|"), '# Reply "bruh" in|Party chat|Raid chat|Guild chat|Instance chat|# Pause in|Raids|Mythic+'
-        .. '|# Sound|Play a sound on bruh|Which sound|Sound cooldown (seconds)|# Bruh Mode|Allow Bruh Mode|# Bruh voiced by Malexis')
+        .. '|# Sound|Play a sound on bruh|Which sound|Sound cooldown (seconds)|# Bruh Mode|Allow Bruh Mode|# Credits|# Created by Jambulance|# Voiced by Malexis')
 end)
 
 test("a broken Settings API does not break login or slash commands", function()
