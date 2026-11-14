@@ -36,7 +36,7 @@ Open **Options > AddOns > Bruh Forever** for checkboxes, the sound picker and th
 
 ## Works on
 
-Retail, MoP Classic, Cataclysm Classic, Wrath Classic, TBC Classic, Classic Era and WoW Forever.
+Retail, MoP Classic, Cataclysm Classic, Wrath Classic, TBC Classic, Classic Era and Forever.
 
 ## Good to know
 
