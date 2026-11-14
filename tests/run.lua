@@ -161,6 +161,24 @@ test("soundpick picks a file, random stays within 1-5, bad input rejected", func
     for i = 2, #w.sounds do assert(w.sounds[i]:find("bruh[1-5]%.ogg"), w.sounds[i]) end
 end)
 
+test("settings page groups controls: reply, pause, sound, Bruh Mode, credits", function()
+    local log = {}
+    local function noop() end
+    _G.SettingsPanel = { GetLayout = function() return { AddInitializer = function(_, h) log[#log + 1] = "# " .. h end } end }
+    _G.CreateSettingsListSectionHeaderInitializer = function(t) return t end
+    _G.MinimalSliderWithSteppersMixin = { Label = { Right = 1 } }
+    load({}, {
+        VarType = { Boolean = 1, Number = 2 },
+        RegisterVerticalLayoutCategory = function() return {} end,
+        RegisterAddOnSetting = function(_, _, _, _, _, label) log[#log + 1] = label; return {} end,
+        CreateCheckbox = noop, CreateDropdown = noop, CreateSlider = noop,
+        CreateSliderOptions = function() return { SetLabelFormatter = noop } end,
+        CreateControlTextContainer = noop, RegisterAddOnCategory = noop,
+    })
+    eq(table.concat(log, "|"), '# Reply "bruh" in|Party chat|Raid chat|Guild chat|Instance chat|# Pause in|Raids|Mythic+'
+        .. '|# Sound|Play a sound on bruh|Which sound|Sound cooldown (seconds)|# Bruh Mode|Allow Bruh Mode|# Credits|# Created by Jambulance|# Voiced by Malexis')
+end)
+
 test("a broken Settings API does not break login or slash commands", function()
     local w = load({}, { RegisterVerticalLayoutCategory = function() error("boom") end })
     eq(w.printed[#w.printed]:find("loaded. Bruh.", 1, true) ~= nil, true)
